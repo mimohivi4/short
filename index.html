@@ -153,6 +153,14 @@
   <script>
     const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"; // base58-ish, no ambiguous chars
 
+    function getBase() {
+      var p = location.pathname;
+      if (p.charAt(p.length - 1) === "/") return p;
+      var i = p.lastIndexOf("/");
+      return i >= 0 ? p.slice(0, i + 1) : "/";
+    }
+    var BASE = getBase();
+
     const textarea = document.getElementById("urls");
     const shortenBtn = document.getElementById("shortenBtn");
     const inputStats = document.getElementById("inputStats");
@@ -176,7 +184,7 @@
 
     async function getExistingMap() {
       try {
-        const r = await fetch("/shortcodes.json", { cache: "no-store" });
+        const r = await fetch(BASE + "shortcodes.json", { cache: "no-store" });
         if (!r.ok) return {};
         const j = await r.json();
         return (j && typeof j === "object") ? j : {};
@@ -203,7 +211,7 @@
       resultsList.innerHTML = entries.map((e) => `
         <li class="row">
           <span class="long"><a href="${escapeHtml(e.long)}" target="_blank" rel="noopener">${escapeHtml(e.long)}</a></span>
-          <a class="short" href="${e.short}" target="_blank" rel="noopener">${e.short.replace(location.origin, "")}</a>
+          <a class="short" href="${e.short}" target="_blank" rel="noopener">${e.short}</a>
           <button class="copy-btn" data-short="${e.short}">Copy</button>
         </li>`).join("");
 
@@ -240,7 +248,7 @@
         let code = genCode(6);
         while (used.has(code)) code = genCode(6);
         used.add(code);
-        entries.push({ code, long: u, short: `${location.origin}/${code}` });
+        entries.push({ code, long: u, short: `${location.origin}${BASE}${code}` });
       }
 
       render(entries, urls.length, dupes);
